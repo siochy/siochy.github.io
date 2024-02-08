@@ -69,8 +69,10 @@ def month_data(month='this'):
                 records.append(summary_of_month)
     elif month == 'prev':
         prev_month = str()
-        if datetime.datetime.today().month > 1:
+        if datetime.datetime.today().month > 10:
             prev_month = f'{datetime.datetime.today().year}-{datetime.datetime.today().month - 1}'
+        elif 10 >= datetime.datetime.today().month > 1:
+            prev_month = f'{datetime.datetime.today().year}-0{datetime.datetime.today().month - 1}'
         elif datetime.datetime.today().month == 1:
             prev_month = f'{datetime.datetime.today().year - 1}-{12}'
 
