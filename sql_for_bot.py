@@ -10,6 +10,7 @@ import sqlite3
 import datetime
 import os.path
 
+
 def new_db():
     # create tables Products and Balance if you need
 
@@ -113,6 +114,9 @@ def calc_bal(product, cost, last_record):
     elif product.lower() == 'save':
         summary -= abs(cost)
         savings += abs(cost)
+    elif product.lower() == 'take':
+        summary += abs(cost)
+        savings -= abs(cost)
     else:
         summary -= abs(cost)
 

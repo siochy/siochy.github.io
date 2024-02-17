@@ -31,6 +31,8 @@ logging.getLogger('httpx').setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
+MESSAGE_MAX_LENGTH = 4096
+
 
 # Define a few command handlers. These usually take the two arguments update and
 # context.
@@ -58,12 +60,15 @@ async def this_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     month_data = sql_for_bot.month_data('this')  # month_data is list
     if month_data:  # could be empty
-        mon_str_data = str()
+        month_str_data = str()
         for line in month_data:
             for elem in line:
-                mon_str_data = f'{mon_str_data} {elem}'
-            mon_str_data = f'{mon_str_data}\n'
-        await update.message.reply_text(mon_str_data)
+                month_str_data = f'{month_str_data} {elem}'
+            month_str_data = f'{month_str_data}\n'
+        if len(month_str_data) >= MESSAGE_MAX_LENGTH:
+            mid_lane = len(month_str_data) // 2
+            await update.message.reply_text(month_str_data[:mid_lane])
+            await update.message.reply_text(month_str_data[mid_lane:])
     else:
         await update.message.reply_text('No records in this month.')
 
@@ -78,6 +83,10 @@ async def prev_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for elem in line:
                 month_str_data = f'{month_str_data} {elem}'
             month_str_data = f'{month_str_data}\n'
+        if len(month_str_data) >= MESSAGE_MAX_LENGTH:
+            mid_lane = len(month_str_data) // 2
+            await update.message.reply_text(month_str_data[:mid_lane])
+            await update.message.reply_text(month_str_data[mid_lane:])
         await update.message.reply_text(month_str_data)
     else:
         await update.message.reply_text('No records in previous month.')
