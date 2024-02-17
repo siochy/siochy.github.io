@@ -2,10 +2,6 @@
 Bot for financial records like sum on bank account, savings,
 spendings of month with name and sums of things.
 
-First, a few handler functions are defined. Then, those functions are passed to
-the Application and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
 Usage:
 Text what you spend money on or use commands to see record of spendings, bank acc and savings
 
