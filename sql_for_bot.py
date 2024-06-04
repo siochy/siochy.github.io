@@ -1,8 +1,8 @@
 # sql-part of bot. insert and extract names of products, income and sums of it
 # and second table - data of balance of bank acc and savings
 # tables:
-# Products - Date, Product, Price
-# Balance - Date, Summary, Savings
+# Products - User, Date, Product, Price
+# Balance - User, Date, Summary, Savings
 # take input from bot, check that, take data from db tables
 # calculate, insert new lines in tables
 
@@ -17,25 +17,29 @@ def new_db():
         cursor = connection.cursor()
         cursor.execute("""
                 CREATE TABLE IF NOT EXISTS Products(
+                User TEXT,
                 Date TEXT,
                 Product TEXT,
                 Price REAL
                 );""")
         cursor.execute("""
                 CREATE TABLE IF NOT EXISTS Balance(
+                User TEXT,
                 Date TEXT,
                 Summary REAL,
                 Savings REAL
                 );""")
 
 
-def take_bal_data():
+def take_bal_data(user):
     # take last record (Date, Summary, Savings) from Balance table
 
     with sqlite3.connect('fin_table.db') as connection:
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM Balance ORDER BY date DESC LIMIT 1;")
+            cursor.execute(
+                "SELECT Date, Summary, Savings FROM Balance WHERE User = ? ORDER BY date DESC LIMIT 1;",
+                (user,))
             last_line = cursor.fetchone()
         except TypeError:
             return False
@@ -45,7 +49,7 @@ def take_bal_data():
             return last_line
 
 
-def month_data(month='this'):
+def month_data(month, user):
     # take all records for month
 
     if month == 'this':
@@ -53,7 +57,9 @@ def month_data(month='this'):
         with sqlite3.connect('fin_table.db') as connection:
             cursor = connection.cursor()
             try:
-                cursor.execute("SELECT * FROM Products WHERE Date LIKE ?;", (this_month + "%",))
+                cursor.execute(
+                    "SELECT Date, Product, Price FROM Products WHERE Date LIKE ? AND User = ?;",
+                    (this_month + "%", user))
                 records = cursor.fetchall()
                 if not records:
                     return False
@@ -63,10 +69,12 @@ def month_data(month='this'):
                 return False
             else:  # give as last line sum of spendings
                 cursor.execute(
-                    "SELECT SUM(Price) FROM Products WHERE Date LIKE ? AND LOWER(Product)"
+                    "SELECT SUM(Price) FROM Products WHERE Date LIKE ? AND User = ? AND LOWER(Product)"
                     "NOT IN ('income', 'save', 'take');",
-                    (this_month + "%",))
-                summary_of_month = (this_month, 'Spendings', round(cursor.fetchone()[0], 2))
+                    (this_month + "%", user))
+                summary_of_month = (this_month,
+                                    'Spendings',
+                                    round(cursor.fetchone()[0], 2))
                 records.append(summary_of_month)
     elif month == 'prev':
         prev_month = str()
@@ -80,7 +88,9 @@ def month_data(month='this'):
         with sqlite3.connect('fin_table.db') as connection:
             cursor = connection.cursor()
             try:
-                cursor.execute("SELECT * FROM Products WHERE Date LIKE ?;", (prev_month + "%",))
+                cursor.execute(
+                    "SELECT Date, Product, Price FROM Products WHERE Date LIKE ? AND User = ?;",
+                    (prev_month + "%", user))
                 records = cursor.fetchall()
                 if not records:
                     return False
@@ -90,16 +100,16 @@ def month_data(month='this'):
                 return False
             else:  # give as last line sum of spendings
                 cursor.execute(
-                    "SELECT SUM(Price) FROM Products WHERE Date LIKE ? AND LOWER(Product)"
+                    "SELECT SUM(Price) FROM Products WHERE Date LIKE ? AND User = ? AND LOWER(Product)"
                     "NOT IN ('income', 'save', 'take');",
-                    (prev_month + "%",))
+                    (prev_month + "%", user))
                 summary_of_month = (prev_month, 'Spendings', round(cursor.fetchone()[0], 2))
                 records.append(summary_of_month)
 
     return records
 
 
-def most_val_prev_month():
+def most_val_prev_month(user):
     prev_month = str()
     if datetime.datetime.today().month > 10:
         prev_month = f'{datetime.datetime.today().year}-{datetime.datetime.today().month - 1}'
@@ -112,12 +122,12 @@ def most_val_prev_month():
         try:
             cursor.execute(
                 """SELECT Product, SUM(Price) AS Sum
-                FROM Products WHERE Date LIKE ?
+                FROM Products WHERE Date LIKE ? AND User = ?
                 AND LOWER(Product) NOT IN ('income', 'save', 'take')
                 GROUP BY Product
                 ORDER BY Sum DESC
                 LIMIT 5;""",
-                (prev_month + "%",))
+                (prev_month + "%", user))
             records = cursor.fetchall()
             if not records:
                 return False
@@ -154,25 +164,31 @@ def calc_bal(product, cost, last_record):
     return summary, savings
 
 
-def check_date():
+def check_date(user):
     # delete last line or record if date is today
 
     with sqlite3.connect('fin_table.db') as connection:
         cursor = connection.cursor()
-        cursor.execute("DELETE FROM Balance WHERE Date = date();")
+        cursor.execute(
+            "DELETE FROM Balance WHERE Date = date('now', 'localtime') AND User = ?;",
+            (user,))
 
 
-def ins_prod_data(product, price):
+def ins_prod_data(user, product, price):
     # inserting data to Products table
 
     with sqlite3.connect('fin_table.db') as connection:
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO Products VALUES(date(), ?, ?);", (product, price))
+        cursor.execute(
+            "INSERT INTO Products VALUES(?, date('now', 'localtime'), ?, ?);",
+            (user, product, price))
 
 
-def ins_bal_data(summary, savings):
+def ins_bal_data(user, summary, savings):
     # Insert data to Balance table
 
     with sqlite3.connect('fin_table.db') as connection:
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO Balance VALUES(date(), ?, ?);", (summary, savings))
+        cursor.execute(
+            "INSERT INTO Balance VALUES(?, date('now', 'localtime'), ?, ?);",
+            (user, summary, savings))

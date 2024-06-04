@@ -34,10 +34,12 @@ MESSAGE_MAX_LENGTH = 4096
 # context.
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Send instructions when the command /start is issued
-    await update.message.reply_text(rf'Use command /data to get records of bank acc and savings. '
+    user = update.message.from_user.username
+    await update.message.reply_text(f'Hi there {user}!\n'
+                                    rf'Use command /data to get records of bank acc and savings. '
                                     rf'Use command /this_month to get records of this month '
-                                    rf'or /prev_month to get previous. '
-                                    rf'/too_many to get records about most expensive prod in prev month. '
+                                    f'or /prev_month to get previous.\n'
+                                    f'/too_many to get records about most expensive prod in prev month.\n'
                                     rf'Text what you spend money on in format "Bread 33.50" or "Income 3500". '
                                     rf'If it\'s your first usage then click /create')
 
@@ -55,7 +57,8 @@ async def create_tables(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def this_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # give user records of spendings in this month
 
-    month_data = sql_for_bot.month_data('this')  # month_data is list
+    user = update.message.from_user.id
+    month_data = sql_for_bot.month_data('this', user)  # month_data is list
     if month_data:  # can be empty
         month_str_data = str()
         for line in month_data:
@@ -74,7 +77,8 @@ async def this_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def prev_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # give user records of spendings in previous month
 
-    month_data = sql_for_bot.month_data('prev')  # month_data is list
+    user = update.message.from_user.id
+    month_data = sql_for_bot.month_data('prev', user)  # month_data is list
     if month_data:  # can be empty
         month_str_data = str()
         for line in month_data:
@@ -93,7 +97,8 @@ async def prev_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def most_val(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # give records about most valuable products in previous month
 
-    month_data = sql_for_bot.most_val_prev_month()
+    user = update.message.from_user.id
+    month_data = sql_for_bot.most_val_prev_month(user)
     if month_data:
         month_str_data = str()
         for line in month_data:
@@ -107,26 +112,28 @@ async def most_val(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def taker(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Take data to change database
+    user = update.message.from_user.id
     message = update.message.text
     some_tuple = tuple(message.split())
 
     if len(some_tuple) == 2:
         try:
-            sql_for_bot.ins_prod_data(some_tuple[0], float(some_tuple[1]))
+            sql_for_bot.ins_prod_data(user, some_tuple[0], float(some_tuple[1]))
         except ValueError:
             await update.message.reply_text('Please, use format "Something 200.50"')
         else:
-            last_record = sql_for_bot.take_bal_data()
-            sql_for_bot.check_date()
+            last_record = sql_for_bot.take_bal_data(user)
+            sql_for_bot.check_date(user)
             calcul = sql_for_bot.calc_bal(some_tuple[0], float(some_tuple[1]), last_record)
-            sql_for_bot.ins_bal_data(calcul[0], calcul[1])
+            sql_for_bot.ins_bal_data(user, calcul[0], calcul[1])
             await update.message.reply_text('Acknowledged!')
     else:
         await update.message.reply_text('Please, use format "Something 2000.50"')
 
 
 async def giver(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    balance = sql_for_bot.take_bal_data()
+    user = update.message.from_user.id
+    balance = sql_for_bot.take_bal_data(user)
     if balance:
         await update.message.reply_text(f'{balance[0]} | sum: {round(balance[1], 2)} | savings: {round(balance[2], 2)}')
     else:
