@@ -35,8 +35,9 @@ MESSAGE_MAX_LENGTH = 4096
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Send instructions when the command /start is issued
     await update.message.reply_text(rf'Use command /data to get records of bank acc and savings. '
-                                    rf'Use command /thismonth to get records of this month '
-                                    rf'or /prevmonth to get previous. '
+                                    rf'Use command /this_month to get records of this month '
+                                    rf'or /prev_month to get previous. '
+                                    rf'/too_many to get records about most expensive prod in prev month. '
                                     rf'Text what you spend money on in format "Bread 33.50" or "Income 3500". '
                                     rf'If it\'s your first usage then click /create')
 
