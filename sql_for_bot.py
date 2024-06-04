@@ -126,6 +126,8 @@ def most_val_prev_month():
         except sqlite3.OperationalError:
             return False
 
+    return records
+
 
 def calc_bal(product, cost, last_record):
     # if last record exists then take it and decrease with spendings
