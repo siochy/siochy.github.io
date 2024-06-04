@@ -55,7 +55,7 @@ async def this_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # give user records of spendings in this month
 
     month_data = sql_for_bot.month_data('this')  # month_data is list
-    if month_data:  # could be empty
+    if month_data:  # can be empty
         month_str_data = str()
         for line in month_data:
             for elem in line:
@@ -65,6 +65,7 @@ async def this_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
             mid_lane = len(month_str_data) // 2
             await update.message.reply_text(month_str_data[:mid_lane])
             await update.message.reply_text(month_str_data[mid_lane:])
+        await update.message.reply_text(month_str_data)
     else:
         await update.message.reply_text('No records in this month.')
 
@@ -73,7 +74,7 @@ async def prev_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # give user records of spendings in previous month
 
     month_data = sql_for_bot.month_data('prev')  # month_data is list
-    if month_data:  # could be empty
+    if month_data:  # can be empty
         month_str_data = str()
         for line in month_data:
             for elem in line:
@@ -83,6 +84,21 @@ async def prev_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
             mid_lane = len(month_str_data) // 2
             await update.message.reply_text(month_str_data[:mid_lane])
             await update.message.reply_text(month_str_data[mid_lane:])
+        await update.message.reply_text(month_str_data)
+    else:
+        await update.message.reply_text('No records in previous month.')
+
+
+async def most_val(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # give records about most valuable products in previous month
+
+    month_data = sql_for_bot.most_val_prev_month()
+    if month_data:
+        month_str_data = str()
+        for line in month_data:
+            for elem in line:
+                month_str_data = f'{month_str_data} {elem}'
+            month_str_data = f'{month_str_data}\n'
         await update.message.reply_text(month_str_data)
     else:
         await update.message.reply_text('No records in previous month.')
@@ -125,8 +141,9 @@ def main() -> None:
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('create', create_tables))
     application.add_handler(CommandHandler('data', giver))
-    application.add_handler(CommandHandler('thismonth', this_month))
-    application.add_handler(CommandHandler('prevmonth', prev_month))
+    application.add_handler(CommandHandler('this_month', this_month))
+    application.add_handler(CommandHandler('prev_month', prev_month))
+    application.add_handler(CommandHandler('too_many', most_val))
 
     # on non command i.e. message take product and sum of it
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, taker))

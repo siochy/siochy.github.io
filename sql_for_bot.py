@@ -8,7 +8,6 @@
 
 import sqlite3
 import datetime
-import os.path
 
 
 def new_db():
@@ -64,7 +63,8 @@ def month_data(month='this'):
                 return False
             else:  # give as last line sum of spendings
                 cursor.execute(
-                    "SELECT SUM(Price) FROM Products WHERE Date LIKE ? AND LOWER(Product) NOT IN ('income', 'save');",
+                    "SELECT SUM(Price) FROM Products WHERE Date LIKE ? AND LOWER(Product)"
+                    "NOT IN ('income', 'save', 'take');",
                     (this_month + "%",))
                 summary_of_month = (this_month, 'Spendings', round(cursor.fetchone()[0], 2))
                 records.append(summary_of_month)
@@ -90,7 +90,8 @@ def month_data(month='this'):
                 return False
             else:  # give as last line sum of spendings
                 cursor.execute(
-                    "SELECT SUM(Price) FROM Products WHERE Date LIKE ? AND LOWER(Product) NOT IN ('income', 'save');",
+                    "SELECT SUM(Price) FROM Products WHERE Date LIKE ? AND LOWER(Product)"
+                    "NOT IN ('income', 'save', 'take');",
                     (prev_month + "%",))
                 summary_of_month = (prev_month, 'Spendings', round(cursor.fetchone()[0], 2))
                 records.append(summary_of_month)
@@ -98,8 +99,36 @@ def month_data(month='this'):
     return records
 
 
+def most_val_prev_month():
+    prev_month = str()
+    if datetime.datetime.today().month > 10:
+        prev_month = f'{datetime.datetime.today().year}-{datetime.datetime.today().month - 1}'
+    elif 10 >= datetime.datetime.today().month > 1:
+        prev_month = f'{datetime.datetime.today().year}-0{datetime.datetime.today().month - 1}'
+    elif datetime.datetime.today().month == 1:
+        prev_month = f'{datetime.datetime.today().year - 1}-{12}'
+    with sqlite3.connect('fin_table.db') as connection:
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                """SELECT Product, SUM(Price) AS Sum
+                FROM Products WHERE Date LIKE ?
+                AND LOWER(Product) NOT IN ('income', 'save', 'take')
+                GROUP BY Product
+                ORDER BY Sum DESC
+                LIMIT 5;""",
+                (prev_month + "%",))
+            records = cursor.fetchall()
+            if not records:
+                return False
+        except TypeError:
+            return False
+        except sqlite3.OperationalError:
+            return False
+
+
 def calc_bal(product, cost, last_record):
-    # if last record exist then take it and decrease with spendings
+    # if last record exists then take it and decrease with spendings
     # if product is income then increase
     # if save then increase savings and decrease summary
     # and if there's no records then just create it
