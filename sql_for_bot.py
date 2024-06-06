@@ -17,17 +17,17 @@ def new_db():
         cursor = connection.cursor()
         cursor.execute("""
                 CREATE TABLE IF NOT EXISTS Products(
-                User TEXT,
                 Date TEXT,
                 Product TEXT,
-                Price REAL
+                Price REAL,
+                User TEXT,
                 );""")
         cursor.execute("""
                 CREATE TABLE IF NOT EXISTS Balance(
-                User TEXT,
                 Date TEXT,
                 Summary REAL,
-                Savings REAL
+                Savings REAL,
+                User TEXT,
                 );""")
 
 
@@ -180,8 +180,8 @@ def ins_prod_data(user, product, price):
     with sqlite3.connect('fin_table.db') as connection:
         cursor = connection.cursor()
         cursor.execute(
-            "INSERT INTO Products VALUES(?, date('now', 'localtime'), ?, ?);",
-            (user, product, price))
+            "INSERT INTO Products VALUES(date('now', 'localtime'), ?, ?, ?);",
+            (product, price, user))
 
 
 def ins_bal_data(user, summary, savings):
@@ -190,5 +190,5 @@ def ins_bal_data(user, summary, savings):
     with sqlite3.connect('fin_table.db') as connection:
         cursor = connection.cursor()
         cursor.execute(
-            "INSERT INTO Balance VALUES(?, date('now', 'localtime'), ?, ?);",
-            (user, summary, savings))
+            "INSERT INTO Balance VALUES(date('now', 'localtime'), ?, ?, ?);",
+            (summary, savings, user))
