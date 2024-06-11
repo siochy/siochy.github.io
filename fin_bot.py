@@ -35,13 +35,13 @@ MESSAGE_MAX_LENGTH = 4096
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Send instructions when the command /start is issued
     user = update.message.from_user.username.lower()
-    await update.message.reply_text(f'''Hi there {user}!\n
-                                    Use command /data to get records of bank acc and savings.\n
-                                    Use command /this_month to get records of this month\n
-                                    or /prev_month to get previous.\n
-                                    /too_many to get records about most expensive prod in prev month.\n
-                                    Text what you spend money on in format "Bread 33.50" or "Income 3500".\n
-                                    If it\'s your first usage then click /create''')
+    await update.message.reply_text(f'Hi there {user}!\n'
+                                    + 'Use command /data to get records of bank acc and savings.\n'
+                                    + 'Use command /this_month to get records of this month\n'
+                                    + 'or /prev_month to get previous.\n'
+                                    + '/too_many to get records about most expensive prod in prev month.\n'
+                                    + 'Text what you spend money on in format "Bread 33.50" or "Income 3500".\n'
+                                    + 'If it\'s your first usage then click /create')
 
 
 async def create_tables(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -55,7 +55,7 @@ async def create_tables(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def this_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # give user records of spendings in this month
+    # give user records of spending in this month
 
     user = update.message.from_user.username.lower()
     month_data = sql_for_bot.month_data('this', user)  # month_data is list
