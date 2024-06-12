@@ -40,8 +40,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                     + 'Use command /this_month to get records of this month\n'
                                     + 'or /prev_month to get previous.\n'
                                     + '/too_many to get records about most expensive prod in prev month.\n'
-                                    + 'Text what you spend money on in format "Bread 33.50" or "Income 3500".\n'
-                                    + 'If it\'s your first usage then click /create')
+                                    + 'Text what you spend money on in format "Bread 33.50" or "Income 3500".\n')
 
 
 async def create_tables(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
